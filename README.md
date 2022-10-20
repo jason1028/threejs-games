@@ -1,2 +1,2 @@
-# nodejs-games
+# threejs-games
 THREEJS的游戏
