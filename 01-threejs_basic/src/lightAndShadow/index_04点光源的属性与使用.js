@@ -32,6 +32,7 @@ const material = new THREE.MeshStandardMaterial({// side: DoubleSide // emissive
     metalness: 0.3
 });
 
+
 // 创建一个球体几何模型（1，20，20）
 const sphereGeometry = new THREE.SphereBufferGeometry(1, 20, 20);
 // 生成mesh物体
