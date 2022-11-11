@@ -1,7 +1,7 @@
 /**********
- * 目标： 用pointer打造星河
+ * 目标： 设置飘动的雪花
  * 主要内容：
- *     代码：50 ~ 89
+ *      
 ***********/
 
 import * as THREE from 'three';
@@ -12,61 +12,85 @@ import * as dat from 'dat.gui';
 
 // 导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { Clock } from 'three';
 
 // 创建一个场景(场景就是要创建一个环境)
 const scene = new THREE.Scene();
 
 // 创建一个相机(相机，相当于一个的眼睛)
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight);
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
 
 // 设置相机位置x，y，z  (vector3 三维向量)
-camera.position.set(0, 0, 10);
+camera.position.set(0, 0, 20);
 // 将相机添加至场景
 scene.add(camera);
 
-const particlesGeometry = new THREE.BufferGeometry();
-particlesGeometry.size = 0.5;
-const count = 5000;
+// 粒子纹理
+const textrueLoader = new THREE.TextureLoader();
+const particlesTexture = textrueLoader.load('./textures/particles/1.png');
 
-// 设置换冲区数组
-const positions = new Float32Array(count * 3);
-// 设置每一个顶点的颜色
-const colors = new Float32Array(count * 3);
-
-// 设置顶点
-for(let i = 0; i < count * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 30;
+const params = {
+    count: 1000,
+    size: 0.2,
+    radius: 5,
+    branch: 3,
+    color: "#ffffff"
 };
-// 设置位置，每3个数作为一个x,y,z的坐标
-particlesGeometry.setAttribute(
-    'position', 
-    new THREE.BufferAttribute(positions, 3)
-);
 
-// const colors = new Float32Array();
+let geometry = null;
+let material = null;
+let points = null;
 
-// 创建点的材质
-const pointMaterial = new THREE.PointsMaterial();
-// 设置点材质的大小
-pointMaterial.size = 0.1;
-// 设置颜色
-pointMaterial.color.set(0xffff00);
-// 看上去每个点的大小一样（不随距离而衰减，一直不设置默认为true，因为不存在3d真实效果了）
-// pointMaterial.sizeAttenuation = false;
+const generateGalaxy = () => {
+    // 生成顶点
+    geometry = new THREE.BufferGeometry();
+    // 随机生成位置
+    const positions = new Float32Array(params.count * 3);
+    // 设置顶点颜色
+    const colors = new Float32Array(params.count * 3);
 
-// 载入纹理
-const texttrueLoader = new THREE.TextureLoader();
-const texture = texttrueLoader.load('./textures/particles/5.png');
+    // 循环生成点
+    for(let i = 0; i < params.count; i++) {
+        // 当前的点应该在哪一条分支
+        const branchAngel = (i % params.branch) * ((2 * Math.PI) / params.branch);
 
-// 设置纹理
-pointMaterial.map = texture;
-pointMaterial.alphaMap = texture;   // 设置透明效果（黑色完全透明，白色不透明）
-pointMaterial.transparent = true;   // 设置这个透明才能生效
-pointMaterial.depthWrite = false;   // 前面是否可以挡住后面
-pointMaterial.blending = THREE.AdditiveBlending; // 设置叠加效果，当前后2个点叠加的时候，设置的效果
+        // 当前点距离圆心的距离
+        const distance = Math.random() * params.radius;
+        const current = i * 3;
+        positions[current] = Math.cos(branchAngel) * distance;
+        positions[current + 1] = 0;
+        positions[current + 2] = Math.sin(branchAngel)* distance;
+    }
 
-const points = new THREE.Points(particlesGeometry, pointMaterial);
-scene.add(points);
+    // 每3个点位一组坐标
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    // 设置材质
+    material = new THREE.PointsMaterial({
+        color: new THREE.Color(params.color),
+        size: params.size,
+        // 远距离小，近距离大的效果
+        sizeAttenuation: true,
+        // 前面是否可以挡住后面
+        depthWrite: false,
+        // 效果是否叠加
+        blending: THREE.AdditiveBlending,
+        // 设置纹理
+        map: particlesTexture,
+        // 设置透明纹理
+        alphaMap: particlesTexture,
+        // 跟alphaMap同时使用，不然alphaMap不会生效
+        transparent: true,
+        // 顶点颜色
+        // vertexColors: true
+    });
+
+    points = new THREE.Points(geometry, material);
+    debugger;
+    scene.add(points);
+}
+
+generateGalaxy();
 
 // 初始化渲染器
 const renderer = new THREE.WebGL1Renderer();
@@ -98,10 +122,13 @@ window.addEventListener('dblclick', () => {
     }
 });
 
+const clock = new THREE.Clock();
+
 // 渲染函数
-function render(time) {
+function render() {
     // 如果前面设置了阻尼(惯性)效果，每次渲染就必须要调用.update()
     controls.update();
+    let time = clock.getElapsedTime();
     // 使用渲染器，通过相机将场景渲染进来
     renderer.render(scene, camera);
     // 下一帧执行渲染
