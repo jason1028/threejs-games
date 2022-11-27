@@ -13,6 +13,8 @@ import * as dat from 'dat.gui';
 // 导入cannon_es
 import * as CANNON  from 'cannon-es';
 
+const gui = new dat.GUI();
+
 // 导入轨道控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { DoubleSide } from 'three';
@@ -31,6 +33,7 @@ const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHei
 camera.position.set(0, 0, 20);
 // 将相机添加至场景
 scene.add(camera);
+scene.background = new THREE.Color(0x212223);
 
 // 创建纹理加载器
 const textrueLoader = new THREE.TextureLoader();
@@ -54,9 +57,20 @@ const rawShaderMaterial = new THREE.ShaderMaterial({
         },
         uTexture: {
             value: texture
+        },
+        uScale: {
+            value: params.uScale
         }
     }
 });
+
+gui.add(params, 'uScale')
+    .min(0)
+    .max(1)
+    .step(0.1)
+    .onChange((value) => {
+        rawShaderMaterial.uniforms.uScale.value = value;
+    });
 
 // 创建面板Geometry
 const planeGeometry = new THREE.PlaneGeometry(1, 1, 64, 64);

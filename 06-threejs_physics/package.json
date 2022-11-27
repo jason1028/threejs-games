@@ -1,0 +1,22 @@
+{
+  "name": "threejs-demo-01",
+  "version": "1.0.0",
+  "description": "threejs 入门第一课",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel ./src/index.html",
+    "build": "parcel build ./src/index.html"
+  },
+  "keywords": [
+    "threejs",
+    "3d"
+  ],
+  "author": "jason",
+  "license": "ISC",
+  "dependencies": {
+    "cannon-es": "^0.20.0",
+    "dat.gui": "^0.7.9",
+    "gsap": "^3.11.3",
+    "three": "^0.145.0"
+  }
+}
